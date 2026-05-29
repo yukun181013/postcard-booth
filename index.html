@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>明信片自助机 · Postcard Kiosk</title>
+
+  <!-- Distinctive type: chunky retro slab + handwritten script + passport-stamp mono (self-hosted) -->
+  <link rel="stylesheet" href="fonts.css" />
+
+  <!-- In-browser person segmentation (self-hosted, runs locally, no upload) -->
+  <script src="js/mediapipe/selfie_segmentation.js"></script>
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-step="welcome">
+
+  <!-- paper grain overlay -->
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- progress stamps -->
+  <header class="topbar" aria-hidden="true">
+    <div class="brand">
+      <span class="brand__mark">✦</span>
+      <span class="brand__name">POSTCARD&nbsp;CO.</span>
+    </div>
+    <nav class="progress" id="progress">
+      <span class="progress__dot" data-for="capture">01</span>
+      <span class="progress__dot" data-for="processing">02</span>
+      <span class="progress__dot" data-for="template">03</span>
+      <span class="progress__dot" data-for="sign">04</span>
+      <span class="progress__dot" data-for="result">05</span>
+    </nav>
+  </header>
+
+  <main id="stage">
+
+    <!-- ░░░ WELCOME ░░░ -->
+    <section class="step step--welcome" data-screen="welcome">
+      <div class="welcome__deco welcome__deco--stamp">
+        <span class="stamp-mini">PAR<br>AVION</span>
+      </div>
+      <div class="welcome__copy">
+        <p class="eyebrow">自助拍照 · 即时生成</p>
+        <h1 class="display">
+          <span class="display__sm">Greetings from</span>
+          <span class="display__lg">这里</span>
+        </h1>
+        <p class="lede">拍张照 · 把你抠出来 · 贴进明信片 · 签上名字<br>一台平板，全程搞定。</p>
+        <button class="btn btn--hero" data-action="start">
+          <span>开始制作</span>
+          <span class="btn__arrow">→</span>
+        </button>
+        <p class="fineprint">📷 全程在本机完成，照片不会上传到任何服务器</p>
+      </div>
+      <div class="welcome__card" aria-hidden="true">
+        <div class="postcard-mock">
+          <div class="postcard-mock__photo"></div>
+          <div class="postcard-mock__lines"></div>
+          <div class="postcard-mock__stamp"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ░░░ CAPTURE ░░░ -->
+    <section class="step step--capture" data-screen="capture">
+      <div class="step__head">
+        <h2 class="step__title">站到框里，准备拍照</h2>
+        <p class="step__hint">对准镜头，露出上半身效果最好</p>
+      </div>
+      <div class="viewfinder" id="viewfinder">
+        <video id="video" playsinline autoplay muted></video>
+        <div class="viewfinder__frame">
+          <span class="tick tick--tl"></span><span class="tick tick--tr"></span>
+          <span class="tick tick--bl"></span><span class="tick tick--br"></span>
+        </div>
+        <div class="viewfinder__flash" id="flash"></div>
+        <div class="viewfinder__count" id="countdown"></div>
+        <p class="viewfinder__error" id="camError" hidden>
+          📷 无法打开摄像头<br><small>请允许摄像头权限，或用下方「从相册选择」</small>
+        </p>
+      </div>
+      <div class="actions">
+        <button class="btn btn--ghost" data-action="flip">⟲ 翻转</button>
+        <button class="btn btn--shutter" data-action="shoot" id="shootBtn">
+          <span class="shutter__ring"></span><span class="shutter__core"></span>
+        </button>
+        <label class="btn btn--ghost">
+          ⤓ 相册
+          <input type="file" id="fileInput" accept="image/*" hidden />
+        </label>
+      </div>
+    </section>
+
+    <!-- ░░░ PROCESSING ░░░ -->
+    <section class="step step--processing" data-screen="processing">
+      <div class="step__head">
+        <h2 class="step__title" id="procTitle">正在把你抠出来…</h2>
+        <p class="step__hint" id="procHint">本机 AI 处理中，请稍候</p>
+      </div>
+      <div class="develop">
+        <div class="develop__frame">
+          <canvas id="cutoutPreview"></canvas>
+          <div class="develop__shimmer" id="shimmer"></div>
+        </div>
+      </div>
+      <div class="actions actions--center">
+        <button class="btn btn--ghost" data-action="reshoot" id="reshootBtn" hidden>↺ 重拍</button>
+        <button class="btn btn--primary" data-action="toTemplate" id="toTemplateBtn" hidden>用这张 →</button>
+      </div>
+    </section>
+
+    <!-- ░░░ TEMPLATE ░░░ -->
+    <section class="step step--template" data-screen="template">
+      <div class="step__head">
+        <h2 class="step__title">挑一张明信片底图</h2>
+        <p class="step__hint">点一下选中，右下角预览会实时更新</p>
+      </div>
+      <div class="template-pick">
+        <div class="template-grid" id="templateGrid"><!-- thumbs injected --></div>
+        <div class="template-preview">
+          <div class="template-preview__frame">
+            <canvas id="livePreview"></canvas>
+          </div>
+          <button class="btn btn--primary" data-action="toSign">下一步：签名 →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ░░░ SIGN ░░░ -->
+    <section class="step step--sign" data-screen="sign">
+      <div class="step__head">
+        <h2 class="step__title">签上你的名字</h2>
+        <p class="step__hint">用手指或触控笔写在虚线上方</p>
+      </div>
+      <div class="signcard">
+        <div class="signcard__left">
+          <div class="postmark">
+            <span class="postmark__top">POSTCARD</span>
+            <span class="postmark__date" id="postDate">2026</span>
+            <span class="postmark__bot">★ KIOSK ★</span>
+          </div>
+          <div class="signcard__lines"></div>
+        </div>
+        <div class="signcard__divider"></div>
+        <div class="signcard__right">
+          <canvas id="signPad" class="signpad"></canvas>
+          <span class="signpad__base">Signed,</span>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn btn--ghost" data-action="clearSign">✕ 重写</button>
+        <button class="btn btn--primary" data-action="toResult">完成 →</button>
+      </div>
+    </section>
+
+    <!-- ░░░ RESULT ░░░ -->
+    <section class="step step--result" data-screen="result">
+      <div class="step__head">
+        <h2 class="step__title">✦ 你的明信片做好啦 ✦</h2>
+        <p class="step__hint">长按图片可保存，或点下面的按钮下载</p>
+      </div>
+      <div class="result">
+        <div class="result__frame" id="resultFrame">
+          <canvas id="finalCanvas"></canvas>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn btn--ghost" data-action="restart">↺ 再来一张</button>
+        <button class="btn btn--primary" data-action="save">⤓ 保存明信片</button>
+      </div>
+    </section>
+
+  </main>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
