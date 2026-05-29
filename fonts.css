@@ -1,22 +1,7 @@
-/* Self-hosted fonts (no external CDN). Latin glyphs only —
-   Chinese text falls back to the system CJK font. */
+/* Self-hosted brush calligraphy (subset to the glyphs used by titles/poems).
+   楷体/宋体 come from the system stacks defined in styles.css. */
 @font-face {
-  font-family: "Alfa Slab One";
+  font-family: "Ma Shan Zheng";
   font-style: normal; font-weight: 400; font-display: swap;
-  src: url("fonts/alfa-slab-one-latin-400-normal.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Yellowtail";
-  font-style: normal; font-weight: 400; font-display: swap;
-  src: url("fonts/yellowtail-latin-400-normal.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Space Mono";
-  font-style: normal; font-weight: 400; font-display: swap;
-  src: url("fonts/space-mono-latin-400-normal.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Space Mono";
-  font-style: normal; font-weight: 700; font-display: swap;
-  src: url("fonts/space-mono-latin-700-normal.woff2") format("woff2");
+  src: url("fonts/ma-shan-zheng-brush.woff2") format("woff2");
 }

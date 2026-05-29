@@ -1,6 +1,6 @@
-# 明信片自助机 · Postcard Kiosk
+# 见字如面 · 互动明信片
 
-一台平板，全程一个页面：**拍照 → 把人抠出来 → 选明信片模板 → 签名 → 生成明信片**。
+一台平板，全程一个页面：**拍照 → 抠像 → 选背景题诗 → 落款 → 生成古风明信片**（国风/水墨皮肤）。
 纯前端、无后端、无框架。抠图（人像分割）在**平板本机浏览器里**完成，照片不上传任何服务器。
 字体和 AI 模型都打包在站点里，**不依赖任何外部 CDN**（更快、更稳，国内网络也正常）。
 
@@ -47,18 +47,18 @@ python3 -m http.server 8753
 |------|------|
 | 拍照 | `getUserMedia` 取流，前置自动镜像；也支持「从相册选择」 |
 | 抠图 | `js/segmenter.js` — MediaPipe Selfie Segmentation（`js/mediapipe/` 本地模型），输出透明背景人像 |
-| 模板 + 地名 | `js/templates.js` 4 张 canvas 底图；地名（"Greetings from ___"）在选模板页可改，自动大写并缩放适配 |
+| 选背景 + 题诗 | `js/templates.js` 4 张水墨底图（远山/江帆/明月/云峰），各配一句竖排诗词，由 app.js 用毛笔字绘制 |
 | 签名 | canvas + Pointer Events，手指/触控笔均可，自动裁掉空白 |
 | 合成 | `js/app.js` `composePostcard()` — 底图 + 人像 + 邮票/邮戳 + 签名贴纸 |
 | 取图 | `canvas.toBlob()` → 系统分享（AirDrop / 存相册 / 微信）或下载 PNG（1500×1000） |
 
 - `index.html` 结构与各步骤分屏
-- `styles.css` 视觉（复古旅行明信片风：晒褪的青绿 + 珊瑚红 + 芥末黄，奶油纸底纹）
-- `fonts.css` + `fonts/` 自托管字体（Latin；中文走系统字体）
+- `styles.css` 视觉（国风/水墨：宣纸米色 + 墨黑 + 印章红，竖排毛笔诗句、祥云邮票、落款印章）
+- `fonts.css` + `fonts/` 自托管毛笔字体（马善政楷书，已裁剪到用到的字）；中文 UI 走系统楷体/宋体
 
 ## 想改的地方
 
-- **加模板**：在 `js/templates.js` 的 `TEMPLATES` 里加一个 `{ id, name, draw(ctx,w,h) }`。
+- **加背景 / 改诗句**：在 `js/templates.js` 的 `TEMPLATES` 里加或改 `{ id, name, poem:[上句, 下句], draw(ctx,w,h) }`（若用到子集外的新字，需重新裁剪毛笔字体）。
 - **抠图更干净**（发丝级）：把 `js/segmenter.js` 的 `cutout()` 换成云端 API（如 remove.bg），其余不动。
 - **打印**：在结果页 `save()` 旁边接打印机，现场出片。
 

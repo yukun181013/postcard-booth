@@ -1,13 +1,13 @@
 {
-  "name": "明信片自助机 Postcard Kiosk",
-  "short_name": "明信片",
-  "description": "拍照 → 抠图 → 选模板 → 签名 → 生成明信片",
+  "name": "见字如面 · 互动明信片",
+  "short_name": "见字如面",
+  "description": "拍照 → 抠像 → 选背景题诗 → 落款 → 生成古风明信片",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#f4ead2",
-  "theme_color": "#e8503a",
+  "background_color": "#f0e6d2",
+  "theme_color": "#f0e6d2",
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }

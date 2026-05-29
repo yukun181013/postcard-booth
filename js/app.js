@@ -28,7 +28,6 @@ const livePrev   = $("#livePreview");
 const signPad    = $("#signPad");
 const finalCanvas= $("#finalCanvas");
 const postDate   = $("#postDate");
-const destInput  = $("#destInput");
 
 /* ---------- state ---------- */
 const photoCanvas = document.createElement("canvas");
@@ -41,7 +40,6 @@ const state = {
   sigHasInk: false,
   sigBounds: null,
   sigDpr: 1,
-  headlineText: "",
 };
 const YEAR = new Date().getFullYear();
 postDate.textContent = YEAR;
@@ -155,8 +153,6 @@ function buildThumbs() {
 function selectTemplate(id) {
   state.templateId = id;
   document.querySelectorAll(".tpl-thumb").forEach((e) => e.classList.toggle("is-sel", e.dataset.id === id));
-  const tpl = TEMPLATES.find((t) => t.id === id) || TEMPLATES[0];
-  if (destInput) destInput.placeholder = tpl.defaultHeadline;
   updateLivePreview();
 }
 function updateLivePreview() {
@@ -171,7 +167,7 @@ function sizeSignPad() {
   signPad.width = Math.max(1, Math.round(r.width * dpr));
   signPad.height = Math.max(1, Math.round(r.height * dpr));
   const c = signPad.getContext("2d");
-  c.lineCap = "round"; c.lineJoin = "round"; c.strokeStyle = "#23323a"; c.fillStyle = "#23323a";
+  c.lineCap = "round"; c.lineJoin = "round"; c.strokeStyle = "#2b2620"; c.fillStyle = "#2b2620";
   c.lineWidth = 5 * dpr;
   state.sigDpr = dpr;
   clearSign();
@@ -228,70 +224,69 @@ function roundRect(ctx, x, y, w, h, r) {
 
 function drawStamp(ctx, W, H) {
   const u = W / 1000;
-  const sw = 116 * u, sh = 144 * u, x = W - sw - 40 * u, y = 40 * u;
+  const s = 118 * u, x = W - s - 50 * u, y = 50 * u;
   ctx.save();
-  ctx.fillStyle = "#fbf5e6"; ctx.fillRect(x, y, sw, sh);
-  ctx.fillStyle = "#0c8b8a"; ctx.fillRect(x + 8 * u, y + 8 * u, sw - 16 * u, sh - 16 * u);
-  ctx.fillStyle = "#fbf5e6"; ctx.textAlign = "center";
-  ctx.font = `${30 * u}px "Alfa Slab One", serif`; ctx.fillText("¥8", x + sw / 2, y + sh / 2 + 4 * u);
-  ctx.font = `700 ${11 * u}px "Space Mono", monospace`; ctx.fillText("POSTCARD", x + sw / 2, y + sh - 16 * u);
-  // postmark
-  ctx.translate(x - 6 * u, y + sh * 0.5); ctx.rotate(-0.16);
-  ctx.strokeStyle = "rgba(35,50,58,.55)"; ctx.lineWidth = 3 * u;
-  ctx.beginPath(); ctx.arc(0, 0, 46 * u, 0, 7); ctx.stroke();
-  ctx.beginPath(); ctx.arc(0, 0, 38 * u, 0, 7); ctx.stroke();
-  ctx.fillStyle = "rgba(35,50,58,.55)"; ctx.font = `700 ${15 * u}px "Space Mono", monospace`;
-  ctx.fillText(String(YEAR), 0, 5 * u);
+  ctx.strokeStyle = "rgba(158,52,42,.7)"; ctx.lineWidth = 2.4 * u;
+  roundRect(ctx, x, y, s, s, 10 * u); ctx.stroke();
+  ctx.lineWidth = 1.4 * u;
+  roundRect(ctx, x + 6 * u, y + 6 * u, s - 12 * u, s - 12 * u, 7 * u); ctx.stroke();
+  // 祥云 curls in the corners
+  ctx.lineWidth = 1.6 * u;
+  const curl = (cx, cy) => { ctx.beginPath(); ctx.arc(cx, cy, 7 * u, 0, Math.PI * 1.5); ctx.stroke(); };
+  curl(x + 17 * u, y + 17 * u); curl(x + s - 17 * u, y + 17 * u);
+  curl(x + 17 * u, y + s - 17 * u); curl(x + s - 17 * u, y + s - 17 * u);
+  // center character — 寄 (to send)
+  ctx.fillStyle = "rgba(158,52,42,.72)"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.font = `${40 * u}px "Ma Shan Zheng", "Kaiti SC", serif`;
+  ctx.fillText("寄", x + s / 2, y + s / 2 + 3 * u);
   ctx.restore();
 }
 
 function drawSignature(ctx, W, H) {
   const u = W / 1000;
-  const lw = 330 * u, lh = 124 * u, x = 44 * u, y = H - lh - 44 * u;
-  ctx.save();
-  ctx.translate(x, y); ctx.rotate(-0.03);
-  ctx.fillStyle = "rgba(251,245,230,.93)"; ctx.strokeStyle = "#23323a"; ctx.lineWidth = 3 * u;
-  roundRect(ctx, 0, 0, lw, lh, 12 * u); ctx.fill(); ctx.stroke();
-  ctx.textAlign = "left"; ctx.fillStyle = "#4a5a5f";
-  ctx.font = `${26 * u}px "Yellowtail", cursive`;
-  ctx.fillText("Wish you were here —", 20 * u, 38 * u);
   const sig = state.signatureCanvas;
+  const x0 = W * 0.6, y0 = H * 0.74, lineW = W * 0.32;
+  ctx.save();
+  ctx.strokeStyle = "rgba(60,55,48,.3)"; ctx.lineWidth = 1.5 * u;
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0 + lineW, y0); ctx.stroke();
+  ctx.fillStyle = "rgba(120,110,95,.85)"; ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+  ctx.font = `${22 * u}px "Kaiti SC", "STKaiti", serif`;
+  ctx.fillText("落款", x0, y0 + 30 * u);
   if (sig) {
-    const aw = lw - 40 * u, ah = lh - 56 * u;
-    const s = Math.min(aw / sig.width, ah / sig.height);
-    ctx.drawImage(sig, 20 * u, 48 * u, sig.width * s, sig.height * s);
-  } else {
-    ctx.fillStyle = "#23323a"; ctx.font = `${46 * u}px "Yellowtail", cursive`;
-    ctx.fillText("你的名字", 24 * u, 104 * u);
+    const maxW = lineW * 0.78, maxH = H * 0.17;
+    const s = Math.min(maxW / sig.width, maxH / sig.height);
+    ctx.drawImage(sig, x0 + 14 * u, y0 - sig.height * s - 6 * u, sig.width * s, sig.height * s);
   }
   ctx.restore();
 }
 
-function drawHeadline(ctx, W, H, big, sub) {
+function drawSeal(ctx, x, y, size) {
+  ctx.save();
+  ctx.fillStyle = "#9e342a";
+  roundRect(ctx, x, y, size, size, size * 0.18); ctx.fill();
+  ctx.fillStyle = "#f7f1e3"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.font = `${size * 0.64}px "Ma Shan Zheng", "Kaiti SC", serif`;
+  ctx.fillText("印", x + size / 2, y + size / 2 + size * 0.04);
+  ctx.restore();
+}
+
+// vertical brush calligraphy, columns read right-to-left
+function drawPoem(ctx, W, H, lines) {
   const u = W / 1000;
   ctx.save();
-  ctx.textAlign = "center";
-  ctx.fillStyle = "rgba(255,255,255,.94)";
-  ctx.shadowColor = "rgba(0,0,0,.35)";
-  // "Greetings from" script
-  ctx.font = `${64 * u}px "Yellowtail", cursive`;
-  ctx.shadowBlur = 12 * u;
-  ctx.fillText("Greetings from", W / 2, 86 * u);
-  // big slab headline, auto-shrunk to fit the width
-  let size = 112;
-  const maxW = W * 0.88;
-  ctx.font = `${size * u}px "Alfa Slab One", serif`;
-  while (size > 40 && ctx.measureText(big).width > maxW) {
-    size -= 4; ctx.font = `${size * u}px "Alfa Slab One", serif`;
-  }
-  ctx.shadowBlur = 18 * u; ctx.shadowOffsetY = 4 * u;
-  ctx.fillText(big, W / 2, 196 * u);
-  // subtitle
-  if (sub) {
-    ctx.shadowBlur = 6 * u; ctx.shadowOffsetY = 0;
-    ctx.font = `700 ${24 * u}px "Space Mono", monospace`;
-    ctx.fillText(sub, W / 2, 236 * u);
-  }
+  ctx.fillStyle = "#2b2620"; ctx.textAlign = "center"; ctx.textBaseline = "top";
+  const fs = 96 * u;
+  ctx.font = `${fs}px "Ma Shan Zheng", "Kaiti SC", serif`;
+  const colGap = fs * 1.18;
+  const startX = W * 0.72, topY = H * 0.1;
+  lines.forEach((line, ci) => {
+    const x = startX - ci * colGap;
+    [...line].forEach((ch, ri) => ctx.fillText(ch, x, topY + ri * fs * 1.02));
+    if (ci === lines.length - 1) {
+      const sy = topY + line.length * fs * 1.02 + 10 * u;
+      drawSeal(ctx, x - fs * 0.2, sy, fs * 0.42);
+    }
+  });
   ctx.restore();
 }
 
@@ -299,29 +294,33 @@ function composePostcard(ctx, W, H) {
   ctx.clearRect(0, 0, W, H);
   const tpl = TEMPLATES.find((t) => t.id === state.templateId) || TEMPLATES[0];
   tpl.draw(ctx, W, H);
-  const big = (state.headlineText.trim() || tpl.defaultHeadline).toUpperCase();
-  drawHeadline(ctx, W, H, big, tpl.sub);
 
+  // cut-out figure, anchored bottom-left like a figure in the landscape
   const cut = state.cutoutCanvas;
   if (cut) {
-    const targetH = H * 0.82;
+    const targetH = H * 0.72;
     const s = targetH / cut.height;
     const pw = cut.width * s, ph = cut.height * s;
-    const px = W * 0.5 - pw / 2, py = H - ph - H * 0.015;
+    const cx = W * 0.25;
+    const px = cx - pw / 2, py = H - ph - H * 0.02;
     ctx.save();
-    ctx.fillStyle = "rgba(0,0,0,.22)";
-    ctx.beginPath(); ctx.ellipse(W * 0.5, H * 0.965, pw * 0.3, H * 0.02, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = "rgba(40,40,38,.16)";
+    ctx.beginPath(); ctx.ellipse(cx, H * 0.965, pw * 0.34, H * 0.018, 0, 0, 7); ctx.fill();
     ctx.restore();
     ctx.drawImage(cut, px, py, pw, ph);
   }
 
-  // baked frame
-  const b = Math.round(W * 0.02);
-  ctx.lineWidth = b; ctx.strokeStyle = "#fbf5e6"; ctx.strokeRect(b / 2, b / 2, W - b, H - b);
-  ctx.lineWidth = Math.max(2, W * 0.003); ctx.strokeStyle = "#23323a"; ctx.strokeRect(b, b, W - 2 * b, H - 2 * b);
-
+  drawPoem(ctx, W, H, tpl.poem);
   drawStamp(ctx, W, H);
   drawSignature(ctx, W, H);
+
+  // 国风 frame: gold outer line + fine ink inner line
+  const m = Math.round(W * 0.016);
+  ctx.strokeStyle = "#b08d57"; ctx.lineWidth = Math.max(3, W * 0.006);
+  ctx.strokeRect(m, m, W - 2 * m, H - 2 * m);
+  ctx.strokeStyle = "rgba(43,38,32,.75)"; ctx.lineWidth = Math.max(1, W * 0.0015);
+  const m2 = m + Math.round(W * 0.01);
+  ctx.strokeRect(m2, m2, W - 2 * m2, H - 2 * m2);
 }
 
 function buildFinal() {
@@ -357,8 +356,6 @@ async function save() {
 function restart() {
   state.cutoutCanvas = null;
   state.signatureCanvas = null;
-  state.headlineText = "";
-  if (destInput) destInput.value = "";
   if (signPad.width) clearSign();
   selectTemplate(TEMPLATES[0].id);
   setStep("welcome");
@@ -377,12 +374,6 @@ fileInput.addEventListener("change", (e) => {
   };
   img.src = URL.createObjectURL(file);
   fileInput.value = "";
-});
-
-/* ---------- destination text ---------- */
-destInput.addEventListener("input", () => {
-  state.headlineText = destInput.value;
-  updateLivePreview();
 });
 
 /* ---------- action wiring ---------- */
@@ -409,9 +400,7 @@ document.addEventListener("click", (e) => {
 async function loadFonts() {
   try {
     await Promise.all([
-      document.fonts.load('112px "Alfa Slab One"'),
-      document.fonts.load('64px "Yellowtail"'),
-      document.fonts.load('700 16px "Space Mono"'),
+      document.fonts.load('96px "Ma Shan Zheng"'),
     ]);
     await document.fonts.ready;
   } catch (_) {}
