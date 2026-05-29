@@ -330,15 +330,28 @@ function buildFinal() {
   composePostcard(finalCanvas.getContext("2d"), 1500, 1000);
 }
 
-function save() {
-  finalCanvas.toBlob((blob) => {
-    if (!blob) return;
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `postcard-${Date.now()}.png`;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-  }, "image/png");
+async function save() {
+  const blob = await new Promise((res) => finalCanvas.toBlob(res, "image/png"));
+  if (!blob) return;
+  const file = new File([blob], `postcard-${Date.now()}.png`, { type: "image/png" });
+
+  // Native share sheet (AirDrop / 存到相册 / 微信 …) — all local, nothing uploaded.
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: "我的明信片", text: "Greetings from ✦" });
+      return;
+    } catch (e) {
+      if (e && e.name === "AbortError") return; // user dismissed the sheet
+      // any other error: fall through to download
+    }
+  }
+
+  // Fallback: download to this device.
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = file.name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 
 function restart() {
