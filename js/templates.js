@@ -1,111 +1,141 @@
 /* ============================================================
-   templates.js — 水墨 (ink-wash) postcard backdrops, drawn on
-   a canvas. Each carries a classical 诗句 (poem) that app.js
-   paints as vertical brush calligraphy.
+   templates.js — 红色 / 建党105周年 postcard backdrops, drawn
+   on a canvas (red + gold). Each carries a 红色经典 couplet
+   that app.js paints as vertical brush calligraphy.
    ============================================================ */
 
-const PAPER = "#f0e6d2";
+const GOLD = "#e8c86a";
 
-function paper(ctx, w, h) {
-  ctx.fillStyle = PAPER;
-  ctx.fillRect(0, 0, w, h);
-  // faint warm vignette
-  const g = ctx.createRadialGradient(w * 0.5, h * 0.42, h * 0.1, w * 0.5, h * 0.5, h * 0.9);
-  g.addColorStop(0, "rgba(255,250,238,.5)");
-  g.addColorStop(1, "rgba(196,180,150,.18)");
+function redBg(ctx, w, h, fx = 0.5, fy = 0.34) {
+  const g = ctx.createRadialGradient(w * fx, h * fy, h * 0.05, w * 0.5, h * 0.62, h * 1.15);
+  g.addColorStop(0, "#c8302f");
+  g.addColorStop(0.55, "#b81c22");
+  g.addColorStop(1, "#7c1216");
   ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
 }
 
-// smooth mountain ridge through normalised points [[x,y]...] (0..1), filled to bottom
-function ridge(ctx, w, h, pts, fill) {
-  ctx.fillStyle = fill;
-  ctx.beginPath();
-  ctx.moveTo(0, h);
-  ctx.lineTo(pts[0][0] * w, pts[0][1] * h);
-  for (let i = 1; i < pts.length; i++) {
-    const px = pts[i - 1][0] * w, py = pts[i - 1][1] * h;
-    const x = pts[i][0] * w, y = pts[i][1] * h;
-    ctx.quadraticCurveTo(px, py, (px + x) / 2, (py + y) / 2);
+// radiating sunburst behind the focal symbol
+function rays(ctx, w, h, cx, cy) {
+  ctx.save(); ctx.translate(cx, cy);
+  const n = 24, R = Math.hypot(w, h);
+  for (let i = 0; i < n; i++) {
+    ctx.rotate((Math.PI * 2) / n);
+    ctx.fillStyle = i % 2 ? "rgba(255,232,175,.05)" : "rgba(232,200,106,.10)";
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(R, -R * 0.055); ctx.lineTo(R, R * 0.055); ctx.closePath(); ctx.fill();
   }
-  ctx.lineTo(w, h);
-  ctx.closePath();
-  ctx.fill();
+  ctx.restore();
 }
 
-// paper-coloured fog band that softens whatever is behind it
-function mist(ctx, w, h, y0, y1) {
-  const g = ctx.createLinearGradient(0, h * y0, 0, h * y1);
-  g.addColorStop(0, "rgba(240,230,210,.9)");
-  g.addColorStop(1, "rgba(240,230,210,0)");
-  ctx.fillStyle = g;
-  ctx.fillRect(0, h * y0, w, h * (y1 - y0));
+function star(ctx, cx, cy, r, fill, rot = -Math.PI / 2) {
+  ctx.beginPath();
+  for (let i = 0; i < 5; i++) {
+    const a = rot + i * 2 * Math.PI / 5;
+    const a2 = a + Math.PI / 5;
+    ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+    ctx.lineTo(cx + Math.cos(a2) * r * 0.4, cy + Math.sin(a2) * r * 0.4);
+  }
+  ctx.closePath(); ctx.fillStyle = fill; ctx.fill();
 }
 
-const farMountains = (ctx, w, h) => {
-  paper(ctx, w, h);
-  ridge(ctx, w, h, [[0, .46], [.18, .4], [.34, .46], [.5, .37], [.7, .45], [.86, .39], [1, .46]], "rgba(120,140,142,.30)");
-  mist(ctx, w, h, .42, .58);
-  ridge(ctx, w, h, [[0, .6], [.2, .5], [.4, .6], [.6, .49], [.8, .58], [1, .52]], "rgba(74,96,100,.42)");
-  mist(ctx, w, h, .58, .74);
-  ridge(ctx, w, h, [[0, .8], [.25, .66], [.5, .82], [.75, .66], [1, .8]], "rgba(40,54,58,.58)");
-  // faint vermilion sun
-  ctx.fillStyle = "rgba(158,52,42,.45)";
-  ctx.beginPath(); ctx.arc(w * 0.76, h * 0.24, w * 0.045, 0, 7); ctx.fill();
+function bottomShade(ctx, w, h) {
+  const g = ctx.createLinearGradient(0, h * 0.6, 0, h);
+  g.addColorStop(0, "rgba(70,12,16,0)"); g.addColorStop(1, "rgba(70,12,16,.5)");
+  ctx.fillStyle = g; ctx.fillRect(0, h * 0.6, w, h * 0.4);
+}
+
+/* 1 · 星辉 — big gold star + small stars (flag motif) */
+const bdStar = (ctx, w, h) => {
+  redBg(ctx, w, h, 0.52, 0.32);
+  rays(ctx, w, h, w * 0.52, h * 0.34);
+  star(ctx, w * 0.52, h * 0.34, w * 0.12, GOLD);
+  // four small stars arcing around, each rotated to face the big one
+  const big = { x: w * 0.52, y: h * 0.34 };
+  [[0.66, 0.16], [0.72, 0.3], [0.7, 0.46], [0.6, 0.56]].forEach(([px, py]) => {
+    const x = w * px, y = h * py;
+    star(ctx, x, y, w * 0.028, GOLD, Math.atan2(big.y - y, big.x - x) - Math.PI / 2 + Math.PI / 2);
+  });
+  bottomShade(ctx, w, h);
 };
 
-const riverBoat = (ctx, w, h) => {
-  paper(ctx, w, h);
-  ridge(ctx, w, h, [[0, .4], [.3, .34], [.6, .41], [.85, .35], [1, .41]], "rgba(120,140,142,.30)");
-  ridge(ctx, w, h, [[0, .5], [.35, .44], [.7, .5], [1, .45]], "rgba(80,100,104,.30)");
-  mist(ctx, w, h, .4, .6);
-  // water — faint horizontal strokes
-  ctx.strokeStyle = "rgba(90,110,114,.16)"; ctx.lineWidth = Math.max(1, w * 0.0016);
-  for (const yy of [.64, .7, .75, .82, .9]) {
-    ctx.beginPath(); ctx.moveTo(w * 0.08, h * yy); ctx.lineTo(w * 0.62, h * yy); ctx.stroke();
+/* 2 · 天安门 — gate silhouette + 华表 + rays */
+const bdGate = (ctx, w, h) => {
+  redBg(ctx, w, h, 0.5, 0.28);
+  rays(ctx, w, h, w * 0.5, h * 0.3);
+  const dark = "#6e1014", base = h * 0.82;
+  // 华表 columns
+  ctx.fillStyle = "rgba(232,200,106,.55)";
+  [0.2, 0.8].forEach((px) => { ctx.fillRect(w * px - w * 0.006, h * 0.5, w * 0.012, base - h * 0.5); });
+  // 城台
+  ctx.fillStyle = dark;
+  ctx.fillRect(w * 0.3, base, w * 0.4, h - base);
+  ctx.fillRect(w * 0.32, base - h * 0.04, w * 0.36, h * 0.04);
+  // arch doorways
+  ctx.fillStyle = "rgba(40,6,8,.6)";
+  for (let i = -2; i <= 2; i++) {
+    const cx = w * 0.5 + i * w * 0.066, aw = i === 0 ? w * 0.03 : w * 0.022;
+    ctx.fillRect(cx - aw / 2, base + h * 0.05, aw, h - base - h * 0.05);
   }
-  // lone boat
-  ctx.strokeStyle = "rgba(40,40,38,.7)"; ctx.fillStyle = "rgba(40,40,38,.7)";
-  ctx.lineWidth = Math.max(1, w * 0.003);
-  const bx = w * 0.26, by = h * 0.72, bw = w * 0.1;
-  ctx.beginPath(); ctx.moveTo(bx, by); ctx.quadraticCurveTo(bx + bw / 2, by + h * 0.03, bx + bw, by); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(bx + bw * 0.5, by); ctx.lineTo(bx + bw * 0.5, by - h * 0.06); ctx.stroke(); // pole
+  // 城楼 building + double-eave roof
+  ctx.fillStyle = dark;
+  ctx.fillRect(w * 0.37, base - h * 0.2, w * 0.26, h * 0.16);
+  const roof = (yTop, half, drop) => { ctx.beginPath(); ctx.moveTo(w * 0.5 - half, yTop + drop); ctx.lineTo(w * 0.5, yTop); ctx.lineTo(w * 0.5 + half, yTop + drop); ctx.lineTo(w * 0.5 + half * 0.86, yTop + drop); ctx.lineTo(w * 0.5 - half * 0.86, yTop + drop); ctx.closePath(); ctx.fill(); };
+  ctx.fillStyle = GOLD;
+  roof(base - h * 0.24, w * 0.2, h * 0.05);
+  roof(base - h * 0.32, w * 0.15, h * 0.045);
+  bottomShade(ctx, w, h);
 };
 
-const moonMountain = (ctx, w, h) => {
-  paper(ctx, w, h);
-  // moon
-  ctx.fillStyle = "rgba(247,241,227,1)";
-  ctx.beginPath(); ctx.arc(w * 0.7, h * 0.27, w * 0.08, 0, 7); ctx.fill();
-  ctx.strokeStyle = "rgba(150,140,120,.3)"; ctx.lineWidth = Math.max(1, w * 0.002);
-  ctx.beginPath(); ctx.arc(w * 0.7, h * 0.27, w * 0.08, 0, 7); ctx.stroke();
-  mist(ctx, w, h, .34, .5);
-  ridge(ctx, w, h, [[0, .68], [.22, .54], [.46, .72], [.72, .5], [1, .66]], "rgba(56,68,72,.5)");
-  ridge(ctx, w, h, [[0, .84], [.3, .72], [.6, .86], [1, .74]], "rgba(34,44,48,.62)");
+/* 3 · 长城 — Great Wall over ridges */
+const bdWall = (ctx, w, h) => {
+  redBg(ctx, w, h, 0.5, 0.3);
+  rays(ctx, w, h, w * 0.5, h * 0.26);
+  // distant hills
+  ctx.fillStyle = "rgba(70,12,16,.45)";
+  ctx.beginPath(); ctx.moveTo(0, h); ctx.lineTo(0, h * 0.62); ctx.quadraticCurveTo(w * 0.3, h * 0.5, w * 0.6, h * 0.62); ctx.quadraticCurveTo(w * 0.85, h * 0.7, w, h * 0.58); ctx.lineTo(w, h); ctx.closePath(); ctx.fill();
+  // wall along a ridge
+  const dark = "#641013";
+  ctx.strokeStyle = dark; ctx.fillStyle = dark; ctx.lineWidth = h * 0.05;
+  ctx.lineJoin = "round";
+  const ry = (x) => h * (0.66 - 0.12 * Math.sin(x * Math.PI * 1.2) - 0.04 * x);
+  ctx.beginPath(); ctx.moveTo(0, ry(0));
+  for (let t = 0; t <= 1.001; t += 0.05) ctx.lineTo(w * t, ry(t));
+  ctx.stroke();
+  // crenellations + towers
+  for (let t = 0; t <= 1.0; t += 0.06) {
+    const x = w * t, y = ry(t);
+    ctx.fillRect(x - w * 0.008, y - h * 0.06, w * 0.016, h * 0.03);
+    if (Math.abs((t * 100) % 24) < 2) ctx.fillRect(x - w * 0.02, y - h * 0.11, w * 0.04, h * 0.1);
+  }
+  bottomShade(ctx, w, h);
 };
 
-const cloudPeak = (ctx, w, h) => {
-  paper(ctx, w, h);
-  // distant peaks
-  ridge(ctx, w, h, [[0, .5], [.2, .4], [.4, .5], [.65, .38], [.85, .47], [1, .42]], "rgba(120,140,142,.28)");
-  // tall central peak
-  ctx.fillStyle = "rgba(60,74,78,.55)";
-  ctx.beginPath();
-  ctx.moveTo(w * 0.32, h); ctx.lineTo(w * 0.5, h * 0.18); ctx.lineTo(w * 0.68, h); ctx.closePath(); ctx.fill();
-  // snow/light on peak
-  ctx.fillStyle = "rgba(247,241,227,.9)";
-  ctx.beginPath(); ctx.moveTo(w * 0.5, h * 0.18); ctx.lineTo(w * 0.45, h * 0.3); ctx.lineTo(w * 0.55, h * 0.3); ctx.closePath(); ctx.fill();
-  // sea of clouds
-  ctx.fillStyle = "rgba(247,241,227,.92)";
-  ctx.beginPath();
-  ctx.moveTo(0, h * 0.62);
-  for (let x = 0; x <= 1.0001; x += 0.1) ctx.quadraticCurveTo(w * (x + 0.05), h * (0.58 + (x % 0.2 ? 0.04 : -0.02)), w * (x + 0.1), h * 0.62);
-  ctx.lineTo(w, h * 0.78); ctx.lineTo(0, h * 0.78); ctx.closePath(); ctx.fill();
-  mist(ctx, w, h, .6, .72);
+/* 4 · 红旗 — flying flags + stars */
+const bdFlags = (ctx, w, h) => {
+  redBg(ctx, w, h, 0.4, 0.34);
+  rays(ctx, w, h, w * 0.45, h * 0.36);
+  const flag = (x, y, sw, sh, col) => {
+    ctx.fillStyle = col; ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.bezierCurveTo(x + sw * 0.33, y - sh * 0.18, x + sw * 0.66, y + sh * 0.2, x + sw, y - sh * 0.05);
+    ctx.lineTo(x + sw, y + sh * 0.9);
+    ctx.bezierCurveTo(x + sw * 0.66, y + sh * 1.1, x + sw * 0.33, y + sh * 0.72, x, y + sh * 0.9);
+    ctx.closePath(); ctx.fill();
+  };
+  flag(w * 0.16, h * 0.2, w * 0.5, h * 0.34, "rgba(150,16,20,.85)");
+  flag(w * 0.26, h * 0.16, w * 0.52, h * 0.34, "#9e1418");
+  flag(w * 0.36, h * 0.12, w * 0.5, h * 0.34, "#c8302f");
+  // gold stars on the front flag
+  star(ctx, w * 0.5, h * 0.27, w * 0.05, GOLD);
+  [[0.6, 0.2], [0.64, 0.27], [0.62, 0.35], [0.55, 0.39]].forEach(([px, py]) => star(ctx, w * px, h * py, w * 0.016, GOLD));
+  // flagpole
+  ctx.strokeStyle = "rgba(232,200,106,.6)"; ctx.lineWidth = w * 0.006;
+  ctx.beginPath(); ctx.moveTo(w * 0.16, h * 0.16); ctx.lineTo(w * 0.16, h * 0.95); ctx.stroke();
+  bottomShade(ctx, w, h);
 };
 
 export const TEMPLATES = [
-  { id: "farmtn", name: "远山", poem: ["采菊东篱下", "悠然见南山"], draw: farMountains },
-  { id: "river",  name: "江帆", poem: ["海内存知己", "天涯若比邻"], draw: riverBoat },
-  { id: "moon",   name: "明月", poem: ["海上生明月", "天涯共此时"], draw: moonMountain },
-  { id: "peak",   name: "云峰", poem: ["会当凌绝顶", "一览众山小"], draw: cloudPeak },
+  { id: "star",  name: "星辉",   poem: ["为有牺牲多壮志", "敢教日月换新天"], draw: bdStar },
+  { id: "gate",  name: "天安门", poem: ["数风流人物", "还看今朝"],         draw: bdGate },
+  { id: "wall",  name: "长城",   poem: ["红军不怕远征难", "万水千山只等闲"], draw: bdWall },
+  { id: "flags", name: "红旗",   poem: ["雄关漫道真如铁", "而今迈步从头越"], draw: bdFlags },
 ];

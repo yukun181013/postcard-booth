@@ -222,71 +222,77 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
 }
 
+function drawStar(ctx, cx, cy, r, fill) {
+  ctx.beginPath();
+  for (let i = 0; i < 5; i++) {
+    const a = -Math.PI / 2 + i * 2 * Math.PI / 5, a2 = a + Math.PI / 5;
+    ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+    ctx.lineTo(cx + Math.cos(a2) * r * 0.4, cy + Math.sin(a2) * r * 0.4);
+  }
+  ctx.closePath(); ctx.fillStyle = fill; ctx.fill();
+}
+
 function drawStamp(ctx, W, H) {
   const u = W / 1000;
-  const s = 118 * u, x = W - s - 50 * u, y = 50 * u;
+  const s = 116 * u, x = W - s - 50 * u, y = 50 * u;
   ctx.save();
-  ctx.strokeStyle = "rgba(158,52,42,.7)"; ctx.lineWidth = 2.4 * u;
-  roundRect(ctx, x, y, s, s, 10 * u); ctx.stroke();
-  ctx.lineWidth = 1.4 * u;
-  roundRect(ctx, x + 6 * u, y + 6 * u, s - 12 * u, s - 12 * u, 7 * u); ctx.stroke();
-  // 祥云 curls in the corners
-  ctx.lineWidth = 1.6 * u;
-  const curl = (cx, cy) => { ctx.beginPath(); ctx.arc(cx, cy, 7 * u, 0, Math.PI * 1.5); ctx.stroke(); };
-  curl(x + 17 * u, y + 17 * u); curl(x + s - 17 * u, y + 17 * u);
-  curl(x + 17 * u, y + s - 17 * u); curl(x + s - 17 * u, y + s - 17 * u);
-  // center character — 寄 (to send)
-  ctx.fillStyle = "rgba(158,52,42,.72)"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.font = `${40 * u}px "Ma Shan Zheng", "Kaiti SC", serif`;
-  ctx.fillText("寄", x + s / 2, y + s / 2 + 3 * u);
+  ctx.strokeStyle = "rgba(232,200,106,.9)"; ctx.lineWidth = 2.4 * u;
+  roundRect(ctx, x, y, s, s, 8 * u); ctx.stroke();
+  ctx.lineWidth = 1.2 * u;
+  roundRect(ctx, x + 6 * u, y + 6 * u, s - 12 * u, s - 12 * u, 5 * u); ctx.stroke();
+  drawStar(ctx, x + s / 2, y + s / 2, s * 0.3, "rgba(232,200,106,.95)");
   ctx.restore();
 }
 
 function drawSignature(ctx, W, H) {
   const u = W / 1000;
   const sig = state.signatureCanvas;
-  const x0 = W * 0.6, y0 = H * 0.74, lineW = W * 0.32;
+  const pw = W * 0.3, ph = H * 0.14, x = W - pw - W * 0.05, y = H - ph - H * 0.04;
   ctx.save();
-  ctx.strokeStyle = "rgba(60,55,48,.3)"; ctx.lineWidth = 1.5 * u;
-  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0 + lineW, y0); ctx.stroke();
-  ctx.fillStyle = "rgba(120,110,95,.85)"; ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
-  ctx.font = `${22 * u}px "Kaiti SC", "STKaiti", serif`;
-  ctx.fillText("落款", x0, y0 + 30 * u);
+  ctx.fillStyle = "rgba(247,241,227,.93)"; ctx.strokeStyle = "rgba(232,200,106,.8)"; ctx.lineWidth = 2 * u;
+  roundRect(ctx, x, y, pw, ph, 10 * u); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "#9e1419"; ctx.textAlign = "left"; ctx.textBaseline = "top";
+  ctx.font = `${19 * u}px "Kaiti SC", "STKaiti", serif`;
+  ctx.fillText("落款", x + 16 * u, y + 11 * u);
   if (sig) {
-    const maxW = lineW * 0.78, maxH = H * 0.17;
-    const s = Math.min(maxW / sig.width, maxH / sig.height);
-    ctx.drawImage(sig, x0 + 14 * u, y0 - sig.height * s - 6 * u, sig.width * s, sig.height * s);
+    const aw = pw - 30 * u, ah = ph - 42 * u;
+    const s = Math.min(aw / sig.width, ah / sig.height);
+    ctx.drawImage(sig, x + 16 * u, y + 38 * u, sig.width * s, sig.height * s);
   }
   ctx.restore();
 }
 
 function drawSeal(ctx, x, y, size) {
   ctx.save();
-  ctx.fillStyle = "#9e342a";
-  roundRect(ctx, x, y, size, size, size * 0.18); ctx.fill();
-  ctx.fillStyle = "#f7f1e3"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.font = `${size * 0.64}px "Ma Shan Zheng", "Kaiti SC", serif`;
-  ctx.fillText("印", x + size / 2, y + size / 2 + size * 0.04);
+  ctx.fillStyle = "#d8b24a";
+  roundRect(ctx, x, y, size, size, size * 0.16); ctx.fill();
+  ctx.strokeStyle = "rgba(120,18,22,.55)"; ctx.lineWidth = size * 0.05;
+  roundRect(ctx, x, y, size, size, size * 0.16); ctx.stroke();
+  ctx.fillStyle = "#8e1419"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.font = `${size * 0.6}px "Ma Shan Zheng", "Kaiti SC", serif`;
+  ctx.fillText("印", x + size / 2, y + size / 2 + size * 0.03);
   ctx.restore();
 }
 
-// vertical brush calligraphy, columns read right-to-left
+// vertical brush calligraphy (cream/gold on red), columns read right-to-left
 function drawPoem(ctx, W, H, lines) {
   const u = W / 1000;
   ctx.save();
-  ctx.fillStyle = "#2b2620"; ctx.textAlign = "center"; ctx.textBaseline = "top";
-  const fs = 96 * u;
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  const maxLen = Math.max(...lines.map((l) => [...l].length));
+  const fs = Math.min(96 * u, (H * 0.66) / (maxLen * 1.04));
   ctx.font = `${fs}px "Ma Shan Zheng", "Kaiti SC", serif`;
-  const colGap = fs * 1.18;
-  const startX = W * 0.72, topY = H * 0.1;
+  const colGap = fs * 1.2, startX = W * 0.72, topY = H * 0.09;
+  ctx.fillStyle = "#f7efd6";
+  ctx.shadowColor = "rgba(60,8,10,.55)"; ctx.shadowBlur = 10 * u; ctx.shadowOffsetX = 2 * u; ctx.shadowOffsetY = 3 * u;
   lines.forEach((line, ci) => {
     const x = startX - ci * colGap;
-    [...line].forEach((ch, ri) => ctx.fillText(ch, x, topY + ri * fs * 1.02));
-    if (ci === lines.length - 1) {
-      const sy = topY + line.length * fs * 1.02 + 10 * u;
-      drawSeal(ctx, x - fs * 0.2, sy, fs * 0.42);
-    }
+    [...line].forEach((ch, ri) => ctx.fillText(ch, x, topY + ri * fs * 1.04));
   });
+  ctx.shadowColor = "transparent"; ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+  const lastLen = [...lines[lines.length - 1]].length;
+  const sx = startX - (lines.length - 1) * colGap;
+  drawSeal(ctx, sx - fs * 0.22, topY + lastLen * fs * 1.04 + 12 * u, fs * 0.44);
   ctx.restore();
 }
 
@@ -314,11 +320,23 @@ function composePostcard(ctx, W, H) {
   drawStamp(ctx, W, H);
   drawSignature(ctx, W, H);
 
-  // 国风 frame: gold outer line + fine ink inner line
+  // event caption, top-left
+  const bu = W / 1000;
+  ctx.save();
+  ctx.textAlign = "left"; ctx.textBaseline = "top";
+  ctx.fillStyle = "rgba(245,225,160,.95)";
+  ctx.font = `${28 * bu}px "Kaiti SC", "STKaiti", serif`;
+  ctx.fillText("庆祝建党105周年", 58 * bu, 54 * bu);
+  ctx.fillStyle = "rgba(245,225,160,.82)";
+  ctx.font = `${17 * bu}px "Kaiti SC", "STKaiti", serif`;
+  ctx.fillText("莆田学院 · 1921—2026", 60 * bu, 94 * bu);
+  ctx.restore();
+
+  // gold double frame
   const m = Math.round(W * 0.016);
-  ctx.strokeStyle = "#b08d57"; ctx.lineWidth = Math.max(3, W * 0.006);
+  ctx.strokeStyle = "rgba(232,200,106,.9)"; ctx.lineWidth = Math.max(3, W * 0.006);
   ctx.strokeRect(m, m, W - 2 * m, H - 2 * m);
-  ctx.strokeStyle = "rgba(43,38,32,.75)"; ctx.lineWidth = Math.max(1, W * 0.0015);
+  ctx.strokeStyle = "rgba(245,225,160,.5)"; ctx.lineWidth = Math.max(1, W * 0.0014);
   const m2 = m + Math.round(W * 0.01);
   ctx.strokeRect(m2, m2, W - 2 * m2, H - 2 * m2);
 }
