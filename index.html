@@ -123,13 +123,18 @@
     <section class="step step--template" data-screen="template">
       <div class="step__head">
         <h2 class="step__title">挑一张明信片底图</h2>
-        <p class="step__hint">点一下选中，右下角预览会实时更新</p>
+        <p class="step__hint">点一下选中，写上地名，预览会实时更新</p>
       </div>
       <div class="template-pick">
         <div class="template-grid" id="templateGrid"><!-- thumbs injected --></div>
         <div class="template-preview">
           <div class="template-preview__frame">
             <canvas id="livePreview"></canvas>
+          </div>
+          <div class="dest-field">
+            <label for="destInput">写上地名 <span>Greetings from ___</span></label>
+            <input id="destInput" type="text" maxlength="16" autocomplete="off"
+                   autocapitalize="characters" placeholder="THE COAST" />
           </div>
           <button class="btn btn--primary" data-action="toSign">下一步：签名 →</button>
         </div>

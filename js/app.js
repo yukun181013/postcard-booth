@@ -28,6 +28,7 @@ const livePrev   = $("#livePreview");
 const signPad    = $("#signPad");
 const finalCanvas= $("#finalCanvas");
 const postDate   = $("#postDate");
+const destInput  = $("#destInput");
 
 /* ---------- state ---------- */
 const photoCanvas = document.createElement("canvas");
@@ -40,6 +41,7 @@ const state = {
   sigHasInk: false,
   sigBounds: null,
   sigDpr: 1,
+  headlineText: "",
 };
 const YEAR = new Date().getFullYear();
 postDate.textContent = YEAR;
@@ -153,6 +155,8 @@ function buildThumbs() {
 function selectTemplate(id) {
   state.templateId = id;
   document.querySelectorAll(".tpl-thumb").forEach((e) => e.classList.toggle("is-sel", e.dataset.id === id));
+  const tpl = TEMPLATES.find((t) => t.id === id) || TEMPLATES[0];
+  if (destInput) destInput.placeholder = tpl.defaultHeadline;
   updateLivePreview();
 }
 function updateLivePreview() {
@@ -263,10 +267,40 @@ function drawSignature(ctx, W, H) {
   ctx.restore();
 }
 
+function drawHeadline(ctx, W, H, big, sub) {
+  const u = W / 1000;
+  ctx.save();
+  ctx.textAlign = "center";
+  ctx.fillStyle = "rgba(255,255,255,.94)";
+  ctx.shadowColor = "rgba(0,0,0,.35)";
+  // "Greetings from" script
+  ctx.font = `${64 * u}px "Yellowtail", cursive`;
+  ctx.shadowBlur = 12 * u;
+  ctx.fillText("Greetings from", W / 2, 86 * u);
+  // big slab headline, auto-shrunk to fit the width
+  let size = 112;
+  const maxW = W * 0.88;
+  ctx.font = `${size * u}px "Alfa Slab One", serif`;
+  while (size > 40 && ctx.measureText(big).width > maxW) {
+    size -= 4; ctx.font = `${size * u}px "Alfa Slab One", serif`;
+  }
+  ctx.shadowBlur = 18 * u; ctx.shadowOffsetY = 4 * u;
+  ctx.fillText(big, W / 2, 196 * u);
+  // subtitle
+  if (sub) {
+    ctx.shadowBlur = 6 * u; ctx.shadowOffsetY = 0;
+    ctx.font = `700 ${24 * u}px "Space Mono", monospace`;
+    ctx.fillText(sub, W / 2, 236 * u);
+  }
+  ctx.restore();
+}
+
 function composePostcard(ctx, W, H) {
   ctx.clearRect(0, 0, W, H);
   const tpl = TEMPLATES.find((t) => t.id === state.templateId) || TEMPLATES[0];
   tpl.draw(ctx, W, H);
+  const big = (state.headlineText.trim() || tpl.defaultHeadline).toUpperCase();
+  drawHeadline(ctx, W, H, big, tpl.sub);
 
   const cut = state.cutoutCanvas;
   if (cut) {
@@ -310,6 +344,8 @@ function save() {
 function restart() {
   state.cutoutCanvas = null;
   state.signatureCanvas = null;
+  state.headlineText = "";
+  if (destInput) destInput.value = "";
   if (signPad.width) clearSign();
   selectTemplate(TEMPLATES[0].id);
   setStep("welcome");
@@ -328,6 +364,12 @@ fileInput.addEventListener("change", (e) => {
   };
   img.src = URL.createObjectURL(file);
   fileInput.value = "";
+});
+
+/* ---------- destination text ---------- */
+destInput.addEventListener("input", () => {
+  state.headlineText = destInput.value;
+  updateLivePreview();
 });
 
 /* ---------- action wiring ---------- */

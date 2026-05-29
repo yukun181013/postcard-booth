@@ -239,6 +239,22 @@ body[data-step="result"]     [data-screen="result"] {
 @keyframes drop { 0% { opacity: 0; transform: rotate(8deg) scale(.7) translateY(-40px); } 100% { opacity: 1; transform: rotate(-1.5deg) scale(1); } }
 
 /* =====================================================
+   destination text input (editable headline)
+   ===================================================== */
+.dest-field { display: flex; flex-direction: column; gap: 6px; }
+.dest-field label { font-size: 13px; font-weight: 700; letter-spacing: .04em; color: var(--ink-soft); display: flex; align-items: baseline; gap: 8px; }
+.dest-field label span { font-family: var(--font-script); font-size: 18px; color: var(--coral); letter-spacing: 0; }
+.dest-field input {
+  font-family: var(--font-display); font-size: 22px; letter-spacing: .02em;
+  color: var(--ink); background: var(--cream);
+  border: 2px solid var(--ink); border-radius: 12px;
+  padding: 12px 16px; width: 100%; min-height: 56px;
+  box-shadow: var(--shadow-hard); text-transform: uppercase;
+}
+.dest-field input::placeholder { color: rgba(35,50,58,.32); text-transform: none; }
+.dest-field input:focus { outline: none; border-color: var(--coral); box-shadow: 4px 4px 0 var(--coral); }
+
+/* =====================================================
    responsive — portrait tablets
    ===================================================== */
 @media (max-aspect-ratio: 1/1) {
