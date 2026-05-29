@@ -47,10 +47,10 @@ python3 -m http.server 8753
 |------|------|
 | 拍照 | `getUserMedia` 取流，前置自动镜像；也支持「从相册选择」 |
 | 抠图 | `js/segmenter.js` — MediaPipe Selfie Segmentation（`js/mediapipe/` 本地模型），输出透明背景人像 |
-| 模板 | `js/templates.js` — 用 canvas 直接画的 4 张底图（无需图片素材） |
+| 模板 + 地名 | `js/templates.js` 4 张 canvas 底图；地名（"Greetings from ___"）在选模板页可改，自动大写并缩放适配 |
 | 签名 | canvas + Pointer Events，手指/触控笔均可，自动裁掉空白 |
 | 合成 | `js/app.js` `composePostcard()` — 底图 + 人像 + 邮票/邮戳 + 签名贴纸 |
-| 导出 | `canvas.toBlob()` → 下载 PNG（1500×1000） |
+| 取图 | `canvas.toBlob()` → 系统分享（AirDrop / 存相册 / 微信）或下载 PNG（1500×1000） |
 
 - `index.html` 结构与各步骤分屏
 - `styles.css` 视觉（复古旅行明信片风：晒褪的青绿 + 珊瑚红 + 芥末黄，奶油纸底纹）
@@ -60,7 +60,7 @@ python3 -m http.server 8753
 
 - **加模板**：在 `js/templates.js` 的 `TEMPLATES` 里加一个 `{ id, name, draw(ctx,w,h) }`。
 - **抠图更干净**（发丝级）：把 `js/segmenter.js` 的 `cutout()` 换成云端 API（如 remove.bg），其余不动。
-- **打印 / 二维码下载**：在结果页 `save()` 旁边接打印机，或上传后生成二维码给用户扫码取图。
+- **打印**：在结果页 `save()` 旁边接打印机，现场出片。
 
 ## 已知边界
 
