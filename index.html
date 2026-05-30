@@ -17,7 +17,9 @@
   <!-- Self-hosted brush calligraphy -->
   <link rel="stylesheet" href="fonts.css" />
 
-  <!-- In-browser person segmentation (self-hosted, runs locally, no upload) -->
+  <!-- In-browser person matting (self-hosted, runs locally, no upload) -->
+  <!-- MODNet via onnxruntime-web (primary) + MediaPipe (fallback) -->
+  <script src="js/vendor/ort/ort.min.js"></script>
   <script src="js/mediapipe/selfie_segmentation.js"></script>
 
   <link rel="stylesheet" href="styles.css" />
