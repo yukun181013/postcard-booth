@@ -72,7 +72,7 @@ async function startCamera() {
   camError.hidden = true; shootBtn.disabled = false;
   try {
     state.stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: state.facing, width: { ideal: 1280 }, height: { ideal: 1280 } },
+      video: { facingMode: state.facing, width: { ideal: 1920 }, height: { ideal: 1920 } },
       audio: false,
     });
     video.srcObject = state.stream;

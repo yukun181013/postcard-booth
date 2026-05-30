@@ -96,18 +96,19 @@ export async function cutout(source, srcW, srcH) {
   for (let i = 0; i < N; i++) {
     let a = 0;
     if (!gate || label[i] === best) {
-      // ramp biased inward (0.46→0.74) so the edge sits inside the halo
-      a = smoothstep(0.46, 0.74, prob[i * 4] / 255);
+      // narrow ramp → crisp edge (just anti-aliased, not soft/blurry),
+      // centred slightly inside 0.5 so the bg halo is still trimmed
+      a = smoothstep(0.46, 0.57, prob[i * 4] / 255);
     }
     ad[i * 4] = 255; ad[i * 4 + 1] = 255; ad[i * 4 + 2] = 255;
     ad[i * 4 + 3] = (a * 255) | 0;
   }
   ax.putImageData(aimg, 0, 0);
 
-  // feather: blur the matte to anti-alias the edge
+  // minimal feather — only enough to anti-alias the edge, not soften it
   const fC = newCanvas(w, h);
   const fx = fC.getContext("2d");
-  fx.filter = `blur(${Math.max(1, Math.round(w / 600))}px)`;
+  fx.filter = `blur(${Math.max(0.6, w / 1500)}px)`;
   fx.drawImage(aC, 0, 0);
 
   // compose: source pixels kept only where the matte is opaque
