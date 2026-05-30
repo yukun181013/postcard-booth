@@ -3,7 +3,7 @@
    template → sign → result. Vanilla, no framework.
    ============================================================ */
 
-import { cutout, preload } from "./segmenter.js";
+import { cutout, preload, onModelProgress } from "./segmenter.js";
 import { TEMPLATES, loadTemplateImages, drawBackdrop } from "./templates.js";
 
 const $ = (s) => document.querySelector(s);
@@ -500,6 +500,17 @@ async function loadFonts() {
   buildThumbs();
   selectTemplate(TEMPLATES[0].id);
   initSignPad();
+  // first-load progress for the matting model (shown on the processing screen)
+  onModelProgress(({ phase, frac }) => {
+    if (document.body.dataset.step !== "processing") return;
+    if (phase === "download" && frac < 1) {
+      procTitle.textContent = "首次准备 AI 模型…";
+      procHint.textContent = `下载抠图模型 ${Math.round(frac * 100)}%（仅首次，之后很快）`;
+    } else if (phase === "init") {
+      procTitle.textContent = "正在初始化…";
+      procHint.textContent = "马上就好";
+    }
+  });
   setStep("welcome");
-  preload(); // warm up the segmentation model in the background
+  preload(); // warm up the matting model in the background (downloads once)
 })();

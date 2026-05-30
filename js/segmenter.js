@@ -8,7 +8,7 @@
    Everything runs locally; the photo is never uploaded.
    ============================================================ */
 
-const MODEL_URL = new URL("models/modnet.onnx", document.baseURI).href;
+const MODEL_URL = new URL("models/modnet_fp16.onnx", document.baseURI).href;
 const ORT_PATH  = new URL("js/vendor/ort/", document.baseURI).href;
 const MP_CDN    = new URL("js/mediapipe/", document.baseURI).href;
 const REF = 512;       // MODNet working size (longer side ≈ 512, multiple of 32)
@@ -35,7 +35,30 @@ function drawScaled(source, srcW, srcH, w, h) {
 }
 
 /* ---------------- MODNet (onnxruntime-web) ---------------- */
-let ortReady = null, ortSession = null;
+let ortReady = null, ortSession = null, progressCb = null;
+// register a callback to show first-load progress: cb({phase, frac})
+export function onModelProgress(cb) { progressCb = cb; }
+const report = (phase, frac) => { try { progressCb && progressCb({ phase, frac }); } catch (_) {} };
+
+// fetch the model with download progress (browser still HTTP-caches it)
+async function fetchModelBuffer(url) {
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error("model " + resp.status);
+  const total = +resp.headers.get("content-length") || 0;
+  if (!resp.body || !total) return await resp.arrayBuffer();
+  const reader = resp.body.getReader();
+  const chunks = []; let loaded = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value); loaded += value.length;
+    report("download", loaded / total);
+  }
+  const buf = new Uint8Array(loaded); let off = 0;
+  for (const c of chunks) { buf.set(c, off); off += c.length; }
+  return buf.buffer;
+}
+
 function loadORT() {
   if (ortReady) return ortReady;
   ortReady = (async () => {
@@ -43,7 +66,11 @@ function loadORT() {
     if (!ort) throw new Error("ort-unavailable");
     ort.env.wasm.wasmPaths = ORT_PATH;
     ort.env.wasm.numThreads = 1;          // single-thread: no SharedArrayBuffer / COOP-COEP needed
-    ortSession = await ort.InferenceSession.create(MODEL_URL, { executionProviders: ["wasm"] });
+    report("download", 0);
+    const buf = await fetchModelBuffer(MODEL_URL);
+    report("init", 1);                    // model fetched; ORT now loads wasm + builds session
+    ortSession = await ort.InferenceSession.create(buf, { executionProviders: ["wasm"] });
+    report("ready", 1);
     return ortSession;
   })().catch((e) => { ortReady = null; throw e; });
   return ortReady;
