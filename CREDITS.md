@@ -6,7 +6,7 @@
 |------|------|------|------|------|
 | 天安门 | Tiananmen Square — Gate of Heavenly Peace | Gary Todd | **CC0**（公有领域） | https://commons.wikimedia.org/w/index.php?curid=108884856 |
 | 长城 | Great Wall of China | Velatrix | **CC0**（公有领域） | https://commons.wikimedia.org/w/index.php?curid=11726877 |
-| 莆田学院 | 莆田学院学园校区 Putian University Xueyuan Campus | rheins | **CC BY 3.0** | https://commons.wikimedia.org/w/index.php?curid=57009444 |
+| 莆田学院 | 莆田学院主楼和湖（校园航拍） | 莆田学院 / 校方提供 | 校方提供，用于本校建党105周年活动 | — |
 | 湄洲妈祖 | 渡轮上看湄洲岛妈祖庙群 | 江上清风1961 | **CC BY 3.0** | https://commons.wikimedia.org/w/index.php?curid=55104881 |
 
 - **CC BY 3.0** 要求署名 —— 已在上表注明作者、授权与来源链接。
