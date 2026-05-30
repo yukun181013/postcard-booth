@@ -47,10 +47,12 @@ python3 -m http.server 8753
 |------|------|
 | 拍照 | `getUserMedia` 取流，前置自动镜像；也支持「从相册选择」 |
 | 抠图 | `js/segmenter.js` — MediaPipe Selfie Segmentation（`js/mediapipe/` 本地模型），输出透明背景人像 |
-| 选背景 + 题诗 | `js/templates.js` 4 张实景底图（天安门/长城/莆田学院/湄洲妈祖，来自 Wikimedia、已调成红金庆典色），各配一句红色经典诗词，由 app.js 用金色毛笔字竖排绘制 |
-| 签名 | canvas + Pointer Events，手指/触控笔均可，自动裁掉空白 |
-| 合成 | `js/app.js` `composePostcard()` — 实景底图 + 莆田学院校徽 + 人像 + 五角星邮戳 + 落款金印 + 活动抬头 + 金色双框 |
-| 取图 | `canvas.toBlob()` → 系统分享（AirDrop / 存相册 / 微信）或下载 PNG（1500×1000） |
+| 选背景 | `js/templates.js` 4 张实景底图（天安门/长城/莆田学院/湄洲妈祖，来自 Wikimedia、已调成红金庆典色） |
+| 宣誓签名 | canvas + Pointer Events，手指/触控笔均可，自动裁掉空白；作为「宣誓人」签名 |
+| 合成 | `js/app.js` `composePostcard()` — 实景底图 + 莆田学院校徽 + 人像 + **入党誓词卡（宣誓人手签 + 印 + 日期）** + 活动抬头 + 金色双框 |
+| 取图 | `canvas.toBlob()` → 系统分享（存相册 / 发朋友圈 / 微信）或下载 PNG（1500×1000） |
+
+> 展板二维码：`board/board-qr-poster.png`（内容＝网站网址）。打印贴在展板上，大家用自己手机扫码打开 → 拍照生成 → 存图发朋友圈。要换网址重新生成即可。
 
 - `index.html` 结构与各步骤分屏
 - `styles.css` 视觉（红金党政庆典：界面红色渐变背景 + 金色光芒 + 米色面板；明信片底图为实景照片）

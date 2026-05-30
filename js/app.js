@@ -302,6 +302,65 @@ function drawPoem(ctx, W, H, lines) {
   ctx.restore();
 }
 
+/* 入党誓词 (Party admission oath) — fixed official text */
+const OATH = "我志愿加入中国共产党，拥护党的纲领，遵守党的章程，履行党员义务，执行党的决定，严守党的纪律，保守党的秘密，对党忠诚，积极工作，为共产主义奋斗终身，随时准备为党和人民牺牲一切，永不叛党。";
+
+function wrapText(ctx, text, maxWidth) {
+  const out = []; let line = "";
+  for (const ch of text) {
+    if (line && ctx.measureText(line + ch).width > maxWidth) { out.push(line); line = ch; }
+    else line += ch;
+  }
+  if (line) out.push(line);
+  return out;
+}
+
+// 入党誓词 card (paper panel on the right) + 宣誓人 hand signature
+function drawOath(ctx, W, H) {
+  const u = W / 1000;
+  const x = W * 0.40, y = H * 0.085, pw = W * 0.555, ph = H * 0.83;
+  ctx.save();
+  // paper card with gold + thin red frame
+  ctx.fillStyle = "rgba(247,241,227,.95)";
+  roundRect(ctx, x, y, pw, ph, 14 * u); ctx.fill();
+  ctx.strokeStyle = "rgba(216,178,74,.95)"; ctx.lineWidth = 2.6 * u;
+  roundRect(ctx, x, y, pw, ph, 14 * u); ctx.stroke();
+  ctx.strokeStyle = "rgba(200,48,47,.5)"; ctx.lineWidth = 1.4 * u;
+  roundRect(ctx, x + 7 * u, y + 7 * u, pw - 14 * u, ph - 14 * u, 9 * u); ctx.stroke();
+
+  const pad = 42 * u, ix = x + pad, iw = pw - pad * 2;
+  // title
+  ctx.textAlign = "center"; ctx.textBaseline = "top";
+  ctx.fillStyle = "#b81c22";
+  ctx.font = `${50 * u}px "Ma Shan Zheng", "Kaiti SC", serif`;
+  ctx.fillText("入党誓词", x + pw / 2, y + 24 * u);
+  // body
+  ctx.textAlign = "left"; ctx.fillStyle = "#3a1a12";
+  const bfs = 32 * u; ctx.font = `${bfs}px "Kaiti SC", "STKaiti", serif`;
+  const lines = wrapText(ctx, OATH, iw);
+  const lh = bfs * 1.58;
+  let ty = y + 24 * u + 54 * u + 20 * u;
+  for (const ln of lines) { ctx.fillText(ln, ix, ty); ty += lh; }
+  // 宣誓人 + hand signature
+  ty += 22 * u;
+  ctx.fillStyle = "#9e1419";
+  ctx.font = `${32 * u}px "Kaiti SC", "STKaiti", serif`;
+  ctx.fillText("宣誓人：", ix, ty);
+  const lw = ctx.measureText("宣誓人：").width;
+  const sig = state.signatureCanvas;
+  if (sig) {
+    const ah = 64 * u, maxw = iw - lw - 66 * u;
+    const s = Math.min(maxw / sig.width, ah / sig.height);
+    ctx.drawImage(sig, ix + lw + 6 * u, ty - 12 * u, sig.width * s, sig.height * s);
+  }
+  drawSeal(ctx, x + pw - pad - 48 * u, ty - 4 * u, 46 * u);
+  // date
+  ctx.textAlign = "right"; ctx.fillStyle = "#7c5a16";
+  ctx.font = `${22 * u}px "Kaiti SC", "STKaiti", serif`;
+  ctx.fillText("二〇二六年五月", x + pw - pad, ty + 50 * u);
+  ctx.restore();
+}
+
 function composePostcard(ctx, W, H) {
   ctx.clearRect(0, 0, W, H);
   const tpl = TEMPLATES.find((t) => t.id === state.templateId) || TEMPLATES[0];
@@ -310,10 +369,10 @@ function composePostcard(ctx, W, H) {
   // cut-out figure, anchored bottom-left like a figure in the landscape
   const cut = state.cutoutCanvas;
   if (cut) {
-    const targetH = H * 0.72;
+    const targetH = H * 0.66;
     const s = targetH / cut.height;
     const pw = cut.width * s, ph = cut.height * s;
-    const cx = W * 0.25;
+    const cx = W * 0.20;
     const px = cx - pw / 2, py = H - ph - H * 0.02;
     ctx.save();
     ctx.fillStyle = "rgba(40,40,38,.16)";
@@ -322,9 +381,7 @@ function composePostcard(ctx, W, H) {
     ctx.drawImage(cut, px, py, pw, ph);
   }
 
-  drawPoem(ctx, W, H, tpl.poem);
-  drawStamp(ctx, W, H);
-  drawSignature(ctx, W, H);
+  drawOath(ctx, W, H);
 
   // school logo + event caption, top-left
   const bu = W / 1000;

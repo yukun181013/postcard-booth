@@ -123,8 +123,8 @@ body[data-step="result"]     [data-screen="result"] { opacity: 1; visibility: vi
    ===================================================== */
 .step--welcome { align-items: center; justify-content: center; text-align: center; }
 .welcome__inner { display: flex; flex-direction: column; align-items: center; gap: 16px; max-width: 780px; }
-.welcome__logo { width: clamp(190px, 30vw, 300px); height: auto; margin-bottom: 2px; filter: drop-shadow(0 2px 10px rgba(0,0,0,.35)); }
-.welcome__eyebrow { font-family: var(--font-kai); letter-spacing: .4em; text-indent: .4em; color: var(--gold-soft); font-size: 15px; }
+.welcome__logo { width: clamp(280px, 48vw, 480px); height: auto; margin-bottom: 6px; filter: drop-shadow(0 3px 14px rgba(0,0,0,.4)); }
+.welcome__eyebrow { font-family: var(--font-kai); letter-spacing: .38em; text-indent: .38em; color: var(--gold-soft); font-size: clamp(16px, 2.2vw, 19px); }
 .welcome__title { font-family: var(--font-brush); font-size: clamp(72px, 16vw, 148px); line-height: 1; letter-spacing: .1em; color: var(--gold-soft); text-shadow: 0 3px 18px rgba(0,0,0,.35); }
 .welcome__lede { font-family: var(--font-kai); color: var(--on-red); font-size: clamp(16px, 2.3vw, 20px); line-height: 1.95; letter-spacing: .08em; }
 .fineprint { font-family: var(--font-song); color: rgba(246,232,200,.7); font-size: 12.5px; letter-spacing: .05em; margin-top: 6px; }
