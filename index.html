@@ -20,6 +20,9 @@
   <!-- In-browser person segmentation (self-hosted, runs locally, no upload) -->
   <script src="js/mediapipe/selfie_segmentation.js"></script>
 
+  <!-- QR code generator (self-hosted, MIT — Kazuhiko Arase) -->
+  <script src="js/vendor/qrcode.js"></script>
+
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body data-step="welcome">
@@ -156,10 +159,18 @@
         <div class="result__frame" id="resultFrame">
           <canvas id="finalCanvas"></canvas>
         </div>
+        <aside class="qrbox" id="qrbox" hidden>
+          <p class="qrbox__title">扫码把明信片带回家</p>
+          <div class="qrbox__code">
+            <canvas id="qrCanvas"></canvas>
+            <div class="qrbox__state" id="qrState"></div>
+          </div>
+          <p class="qrbox__hint" id="qrHint">用手机相机扫码下载</p>
+        </aside>
       </div>
       <div class="actions">
         <button class="btn btn--ghost" data-action="restart">再来一张</button>
-        <button class="btn btn--primary" data-action="save">取图 / 保存</button>
+        <button class="btn btn--primary" data-action="save">保存到本机</button>
       </div>
     </section>
 

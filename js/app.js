@@ -5,6 +5,7 @@
 
 import { cutout, preload } from "./segmenter.js";
 import { TEMPLATES, loadTemplateImages, drawBackdrop } from "./templates.js";
+import { CONFIG } from "./config.js";
 
 const $ = (s) => document.querySelector(s);
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -28,6 +29,10 @@ const livePrev   = $("#livePreview");
 const signPad    = $("#signPad");
 const finalCanvas= $("#finalCanvas");
 const postDate   = $("#postDate");
+const qrbox      = $("#qrbox");
+const qrCanvas   = $("#qrCanvas");
+const qrState    = $("#qrState");
+const qrHint     = $("#qrHint");
 
 /* ---------- state ---------- */
 const photoCanvas = document.createElement("canvas");
@@ -40,6 +45,7 @@ const state = {
   sigHasInk: false,
   sigBounds: null,
   sigDpr: 1,
+  shareUrl: null,
 };
 const YEAR = new Date().getFullYear();
 postDate.textContent = YEAR;
@@ -356,10 +362,61 @@ function composePostcard(ctx, W, H) {
   ctx.strokeRect(m2, m2, W - 2 * m2, H - 2 * m2);
 }
 
+/* ---------- scan-to-download (QR) ---------- */
+const canvasBlob = (cv) => new Promise((res) => cv.toBlob(res, "image/png"));
+
+function setQRState(msg, isError) {
+  qrState.textContent = msg || "";
+  qrState.classList.toggle("is-error", !!isError);
+}
+
+function renderQR(text) {
+  const qr = window.qrcode(0, "M");           // type 0 = auto size, ECC level M
+  qr.addData(text); qr.make();
+  const n = qr.getModuleCount(), quiet = 4, px = 8, total = n + quiet * 2;
+  qrCanvas.width = total * px; qrCanvas.height = total * px;
+  const ctx = qrCanvas.getContext("2d");
+  ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, qrCanvas.width, qrCanvas.height);
+  ctx.fillStyle = "#1a1010";
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++)
+    if (qr.isDark(r, c)) ctx.fillRect((c + quiet) * px, (r + quiet) * px, px, px);
+}
+
+// ask the sign endpoint for a one-time PUT url, upload the png, return its public url
+async function uploadPostcard(blob) {
+  const r = await fetch(CONFIG.uploadEndpoint, { method: "GET" });
+  if (!r.ok) throw new Error("sign endpoint " + r.status);
+  const { putUrl, getUrl } = await r.json();
+  if (!putUrl || !getUrl) throw new Error("bad sign response");
+  const put = await fetch(putUrl, { method: "PUT", headers: { "Content-Type": "image/png" }, body: blob });
+  if (!put.ok) throw new Error("upload " + put.status);
+  return getUrl;
+}
+
+async function prepareQR() {
+  state.shareUrl = null;
+  if (!CONFIG.uploadEndpoint) { qrbox.hidden = true; return; }   // QR disabled until configured
+  qrbox.hidden = false;
+  qrHint.textContent = "正在生成…";
+  setQRState("二维码生成中…", false);
+  try {
+    const url = await uploadPostcard(await canvasBlob(finalCanvas));
+    renderQR(url);
+    setQRState("", false);
+    qrHint.textContent = "用手机相机扫码下载 · " + CONFIG.qrExpireText;
+    state.shareUrl = url;
+  } catch (e) {
+    console.warn("QR generation failed:", e);
+    setQRState("二维码暂时无法生成，请点「保存到本机」", true);
+    qrHint.textContent = "可改用本机保存 / 分享";
+  }
+}
+
 function buildFinal() {
   state.signatureCanvas = makeTrimmedSignature();
   finalCanvas.width = 1500; finalCanvas.height = 1000;
   composePostcard(finalCanvas.getContext("2d"), 1500, 1000);
+  prepareQR();
 }
 
 async function save() {

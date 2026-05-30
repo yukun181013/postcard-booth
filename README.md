@@ -50,13 +50,22 @@ python3 -m http.server 8753
 | 选背景 + 题诗 | `js/templates.js` 4 张实景底图（天安门/长城/莆田学院/湄洲妈祖，来自 Wikimedia、已调成红金庆典色），各配一句红色经典诗词，由 app.js 用金色毛笔字竖排绘制 |
 | 签名 | canvas + Pointer Events，手指/触控笔均可，自动裁掉空白 |
 | 合成 | `js/app.js` `composePostcard()` — 实景底图 + 莆田学院校徽 + 人像 + 五角星邮戳 + 落款金印 + 活动抬头 + 金色双框 |
-| 取图 | `canvas.toBlob()` → 系统分享（AirDrop / 存相册 / 微信）或下载 PNG（1500×1000） |
+| 取图 | 本机保存（`canvas.toBlob()` → 系统分享 AirDrop / 存相册 / 微信，或下载 PNG 1500×1000）；可选**扫码下载**见下 |
 
 - `index.html` 结构与各步骤分屏
 - `styles.css` 视觉（红金党政庆典：界面红色渐变背景 + 金色光芒 + 米色面板；明信片底图为实景照片）
 - `img/` 明信片底图（已调色）+ 莆田学院校徽 `logo.png`
 - `fonts.css` + `fonts/` 自托管毛笔字体（马善政楷书，已裁剪到用到的字）；中文 UI 走系统楷体/宋体
-- `CREDITS.md` 明信片底图来源与授权（Wikimedia Commons，CC0 / CC BY 3.0，已署名）
+- `js/vendor/qrcode.js` 自托管二维码库；`js/config.js` 扫码功能开关
+- `CREDITS.md` 素材来源与授权（底图 Wikimedia CC0/CC BY 3.0、字体、二维码库，均已署名）
+
+## 扫码下载（可选，默认关闭）
+
+结果页可显示二维码，访客用手机扫码下载明信片。二维码装不下整张图，所以需要一个图床来托管成片。
+默认 `js/config.js` 的 `uploadEndpoint` 为空 → 不显示二维码，只用本机保存/分享。
+要开启：按 **`SETUP-QR.md`** 配好腾讯云 COS + 云函数（代码在 `qr-backend/`，零依赖、可直接粘贴），
+把云函数地址填进 `js/config.js` 即可。密钥只存在云函数环境变量里，不进仓库；图片传到你自己的私有桶并自动过期。
+上传失败会自动回退到本机保存。
 
 ## 想改的地方
 
