@@ -16,5 +16,4 @@
 ## 其它资源
 - 字体：**Ma Shan Zheng（马善政楷书）**，SIL Open Font License，已裁剪到用到的字（`fonts/`）。
 - 人像分割：**MediaPipe Selfie Segmentation**（Apache-2.0），全程在本机浏览器运行，照片不上传。
-- 二维码：**qrcode-generator**（Kazuhiko Arase，MIT），自托管于 `js/vendor/qrcode.js`。
 - 莆田学院校徽：由校方提供，仅用于本校建党105周年纪念活动。
