@@ -47,18 +47,20 @@ python3 -m http.server 8753
 |------|------|
 | 拍照 | `getUserMedia` 取流，前置自动镜像；也支持「从相册选择」 |
 | 抠图 | `js/segmenter.js` — MediaPipe Selfie Segmentation（`js/mediapipe/` 本地模型），输出透明背景人像 |
-| 选背景 + 题诗 | `js/templates.js` 4 张红色底图（星辉/天安门/长城/红旗），各配一句红色经典诗词，由 app.js 用金色毛笔字竖排绘制 |
+| 选背景 + 题诗 | `js/templates.js` 4 张实景底图（天安门/长城/莆田学院/湄洲妈祖，来自 Wikimedia、已调成红金庆典色），各配一句红色经典诗词，由 app.js 用金色毛笔字竖排绘制 |
 | 签名 | canvas + Pointer Events，手指/触控笔均可，自动裁掉空白 |
-| 合成 | `js/app.js` `composePostcard()` — 红色底图 + 人像 + 五角星邮戳 + 落款金印 + 活动抬头 + 金色双框 |
+| 合成 | `js/app.js` `composePostcard()` — 实景底图 + 莆田学院校徽 + 人像 + 五角星邮戳 + 落款金印 + 活动抬头 + 金色双框 |
 | 取图 | `canvas.toBlob()` → 系统分享（AirDrop / 存相册 / 微信）或下载 PNG（1500×1000） |
 
 - `index.html` 结构与各步骤分屏
-- `styles.css` 视觉（红金党政庆典：红色渐变背景 + 金色光芒 + 米色面板，金色毛笔诗句、五角星邮戳、落款金印、金色双框）
+- `styles.css` 视觉（红金党政庆典：界面红色渐变背景 + 金色光芒 + 米色面板；明信片底图为实景照片）
+- `img/` 明信片底图（已调色）+ 莆田学院校徽 `logo.png`
 - `fonts.css` + `fonts/` 自托管毛笔字体（马善政楷书，已裁剪到用到的字）；中文 UI 走系统楷体/宋体
+- `CREDITS.md` 明信片底图来源与授权（Wikimedia Commons，CC0 / CC BY 3.0，已署名）
 
 ## 想改的地方
 
-- **加背景 / 改诗句**：在 `js/templates.js` 的 `TEMPLATES` 里加或改 `{ id, name, poem:[上句, 下句], draw(ctx,w,h) }`（若用到子集外的新字，需重新裁剪毛笔字体）。
+- **换底图 / 改诗句**：在 `js/templates.js` 的 `TEMPLATES` 里改 `{ id, name, poem:[上句, 下句], src:"img/xxx.jpg" }`；新底图放进 `img/`（建议 3:2、已调好红金色）。若诗句/模板名用到子集外的新字，需重新裁剪毛笔字体。换图记得更新 `CREDITS.md` 的授权署名。
 - **抠图更干净**（发丝级）：把 `js/segmenter.js` 的 `cutout()` 换成云端 API（如 remove.bg），其余不动。
 - **打印**：在结果页 `save()` 旁边接打印机，现场出片。
 

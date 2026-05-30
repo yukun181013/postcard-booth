@@ -4,7 +4,7 @@
    ============================================================ */
 
 import { cutout, preload } from "./segmenter.js";
-import { TEMPLATES } from "./templates.js";
+import { TEMPLATES, loadTemplateImages, drawBackdrop } from "./templates.js";
 
 const $ = (s) => document.querySelector(s);
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -43,6 +43,12 @@ const state = {
 };
 const YEAR = new Date().getFullYear();
 postDate.textContent = YEAR;
+
+/* white 莆田学院 logo, baked onto the postcard + shown on welcome */
+const logoImg = new Image();
+let logoReady = false;
+logoImg.onload = () => { logoReady = true; };
+logoImg.src = new URL("img/logo.png", document.baseURI).href;
 
 /* ---------- navigation ---------- */
 const STEPS = ["capture", "processing", "template", "sign", "result"];
@@ -142,7 +148,7 @@ function buildThumbs() {
     const el = document.createElement("div");
     el.className = "tpl-thumb"; el.dataset.id = t.id;
     const c = document.createElement("canvas"); c.width = 360; c.height = 240;
-    t.draw(c.getContext("2d"), c.width, c.height);
+    drawBackdrop(c.getContext("2d"), c.width, c.height, t);
     const name = document.createElement("span");
     name.className = "tpl-thumb__name"; name.textContent = t.name;
     el.append(c, name);
@@ -299,7 +305,7 @@ function drawPoem(ctx, W, H, lines) {
 function composePostcard(ctx, W, H) {
   ctx.clearRect(0, 0, W, H);
   const tpl = TEMPLATES.find((t) => t.id === state.templateId) || TEMPLATES[0];
-  tpl.draw(ctx, W, H);
+  drawBackdrop(ctx, W, H, tpl);
 
   // cut-out figure, anchored bottom-left like a figure in the landscape
   const cut = state.cutoutCanvas;
@@ -320,16 +326,25 @@ function composePostcard(ctx, W, H) {
   drawStamp(ctx, W, H);
   drawSignature(ctx, W, H);
 
-  // event caption, top-left
+  // school logo + event caption, top-left
   const bu = W / 1000;
   ctx.save();
+  let capY = 54 * bu;
+  if (logoReady && logoImg.width) {
+    const lw = 220 * bu, lh = lw * (logoImg.height / logoImg.width);
+    ctx.shadowColor = "rgba(40,4,6,.5)"; ctx.shadowBlur = 12 * bu; ctx.shadowOffsetY = 2 * bu;
+    ctx.drawImage(logoImg, 54 * bu, 46 * bu, lw, lh);
+    ctx.shadowColor = "transparent"; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+    capY = 46 * bu + lh + 18 * bu;
+  }
   ctx.textAlign = "left"; ctx.textBaseline = "top";
-  ctx.fillStyle = "rgba(245,225,160,.95)";
-  ctx.font = `${28 * bu}px "Kaiti SC", "STKaiti", serif`;
-  ctx.fillText("庆祝建党105周年", 58 * bu, 54 * bu);
-  ctx.fillStyle = "rgba(245,225,160,.82)";
+  ctx.fillStyle = "rgba(247,236,200,.96)";
+  ctx.shadowColor = "rgba(40,4,6,.55)"; ctx.shadowBlur = 8 * bu; ctx.shadowOffsetY = 2 * bu;
+  ctx.font = `${30 * bu}px "Kaiti SC", "STKaiti", serif`;
+  ctx.fillText("庆祝建党105周年", 56 * bu, capY);
+  ctx.fillStyle = "rgba(247,236,200,.85)";
   ctx.font = `${17 * bu}px "Kaiti SC", "STKaiti", serif`;
-  ctx.fillText("莆田学院 · 1921—2026", 60 * bu, 94 * bu);
+  ctx.fillText("1921 — 2026", 58 * bu, capY + 38 * bu);
   ctx.restore();
 
   // gold double frame
@@ -424,7 +439,7 @@ async function loadFonts() {
   } catch (_) {}
 }
 (async function init() {
-  await loadFonts();
+  await Promise.all([loadFonts(), loadTemplateImages()]);
   buildThumbs();
   selectTemplate(TEMPLATES[0].id);
   initSignPad();
